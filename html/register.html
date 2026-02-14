@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PatenteLab - Registrazione</title>
+  <link rel="stylesheet" href="../css/style.css?v=2">
+  <script src="../js/auth.js" defer></script>
+</head>
+
+<body>
+  <main class="auth-page">
+    <section class="auth-card">
+      <header class="auth-header">
+        <div class="brand__icon">
+          <span class="material-symbols-outlined" aria-hidden="true">directions_car</span>
+        </div>
+        <div>
+          <h1 class="auth-title">Registrazione</h1>
+          <p class="auth-subtitle">Crea il tuo account PatenteLab</p>
+        </div>
+      </header>
+
+      <form id="registerForm" class="auth-form">
+        <div class="field">
+        <label for="reg-username">Username</label>
+        <div class="input-wrap">
+            <span class="material-symbols-outlined input-icon">person</span>
+            <input
+            id="reg-username"
+            name="username"
+            required
+            minlength="3"
+            pattern="^[a-z][a-z0-9._]{2,19}$"
+            placeholder="mario.rossi"
+            title="3-20 caratteri: lettere minuscole, numeri, . e _ (inizia con lettera)"
+            class="with-icon">
+        </div>
+        </div>
+
+        <div class="field">
+        <label for="reg-password">Password</label>
+        <div class="input-wrap">
+            <span class="material-symbols-outlined input-icon">lock</span>
+            <input
+            id="reg-password"
+            type="password"
+            name="password"
+            required
+            minlength="6"
+            placeholder="Almeno 6 caratteri"
+            class="with-icon">
+        </div>
+        </div>
+
+        <button class="btn btn--primary" type="submit">Crea account</button>
+        <p class="msg" id="registerMsg"></p>
+      </form>
+
+      <footer class="auth-footer">
+        <p>Hai già un account?</p>
+        <a class="link" href="./login.html">Accedi</a>
+        <span class="sep">•</span>
+        <a class="link" href="./index.html">Torna alla Dashboard</a>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PatenteLAB</title>
+  <link rel="stylesheet" href="../css/style.css?v=8">
+  <script src="../js/main.js?v=4" defer></script>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <header class="brand">
+        <div class="brand__icon">
+          <span class="material-symbols-outlined" aria-hidden="true">directions_car</span>
+        </div>
+
+        <div class="brand__text">
+          <h1 class="brand__title">PatenteLAB</h1>
+          <p class="brand__subtitle">Preparazione Esame</p>
+        </div>
+      </header>
+
+      <h2 class="section-title">Menu</h2>
+
+      <nav class="menu" id="sidebarMenu" aria-label="Navigazione principale">
+        <button class="menu__item is-active" type="button" data-view="dashboard">
+          <span class="menu__icon">
+            <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+          </span>
+          <span class="menu__label">Dashboard</span>
+        </button>
+
+        <button class="menu__item" type="button" data-view="storico">
+          <span class="menu__icon">
+            <span class="material-symbols-outlined" aria-hidden="true">history</span>
+          </span>
+          <span class="menu__label">Storico</span>
+        </button>
+
+        <button class="menu__item" type="button" data-view="ostiche">
+          <span class="menu__icon">
+            <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+          </span>
+          <span class="menu__label">Domande Ostiche</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-auth">
+        <a class="btn btn--primary" href="./register.html" id="btnShowRegister">Registrati</a>
+        <a class="btn btn--outline" href="./login.html" id="btnShowLogin">Accedi</a>
+        <button class="btn btn--outline hidden" type="button" id="btnLogout">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Contenuto principale -->
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="btnToggleSidebar" type="button" aria-label="Apri menu">
+          <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+        </button>
+        <div class="topbar__title" id="topbarTitle">Dashboard</div>
+      </header>
+
+      <section class="content" id="content">
+
+        <div class="view" id="view-dashboard">
+          
+          <h2 class="section-header">Modalità di Studio</h2>
+          
+          <div class="dashboard-grid">
+            <div class="card card--hero">
+              <div class="card__content">
+                <span class="badge">Consigliato</span>
+                <h3 class="card__title">Simulazione Ufficiale</h3>
+                <p class="card__desc">Simula l'esame reale con 30 domande in 20 minuti. Le domande sono basate sul database ministeriale aggiornato.</p>
+              </div>
+              <div class="card__action">
+                <button class="btn btn--white btn--large" id="btnStartSimulation" onclick="location.href='game.html'">
+                  <span class="material-symbols-outlined">play_arrow</span> Inizia Ora
+                </button>
+              </div>
+            </div>
+
+            <div class="card card--review is-locked" data-lockable="true">
+              <div class="card__lock-overlay">
+                <span class="material-symbols-outlined card__lock-icon">lock</span>
+                <span class="card__lock-text">Accedi per sbloccare</span>
+              </div>
+              <div class="card__icon-box app-icon-orange">
+                <span class="material-symbols-outlined">restart_alt</span>
+              </div>
+              <div class="card__text">
+                <h3 class="card__title">Ripasso Errori</h3>
+                <p class="card__desc">Hai 12 errori recenti da rivedere per migliorare il tuo punteggio.</p>
+              </div>
+            </div>
+
+            
+
+          </div>
+
+          <div class="stats-section hidden" id="statsSection">
+            <h2 class="section-header">Le Tue Statistiche</h2>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <span class="material-symbols-outlined stat-icon" style="color:#0d7ff2">quiz</span>
+                <span class="stat-value" id="statTotale">-</span>
+                <span class="stat-label">Quiz Svolti</span>
+              </div>
+              <div class="stat-box">
+                <span class="material-symbols-outlined stat-icon" style="color:#22c55e">check_circle</span>
+                <span class="stat-value" id="statSuperati">-</span>
+                <span class="stat-label">Superati</span>
+              </div>
+              <div class="stat-box">
+                <span class="material-symbols-outlined stat-icon" style="color:#f59e0b">percent</span>
+                <span class="stat-value" id="statPercentuale">-%</span>
+                <span class="stat-label">Superamento</span>
+              </div>
+              <div class="stat-box">
+                <span class="material-symbols-outlined stat-icon" style="color:#ef4444">error</span>
+                <span class="stat-value" id="statErrori">-</span>
+                <span class="stat-label">Media Errori</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="view hidden" id="view-impara">
+          <h2>Impara Teoria</h2>
+          <p>Sezione studio per categoria + spiegazioni.</p>
+        </div>
+
+        <div class="view hidden" id="view-storico">
+          <h2 class="section-header">Storico Partite</h2>
+          <div id="storico-list"></div>
+        </div>
+
+        <div class="view hidden" id="view-ostiche">
+          <h2 class="section-header">Domande Ostiche</h2>
+          <p style="color:#64748b;margin-bottom:16px;font-size:14px">Le domande in cui gli utenti sbagliano di più.</p>
+          <div id="ostiche-list"></div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+</body>
+</html>

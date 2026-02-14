@@ -1,27 +1,11 @@
 "use strict";
+import { $, $all, show, hide, createCustomP, makeIcon, makeImgThumb } from "./utils.js";
 
 const restrictedViews = ["storico", "amici"];
 let isUserLoggedIn = false;
 
-/* Helpers DOM */
-function $(sel, root = document) {
-  return root.querySelector(sel);
-}
-function $all(sel, root = document) {
-  return Array.from(root.querySelectorAll(sel));
-}
-function show(el) {
-  if (el) el.classList.remove("hidden");
-}
-function hide(el) {
-  if (el) el.classList.add("hidden");
-}
-
-/* UI: menu + views */
 function setActiveMenu(viewName) {
-  // Security check
   if (restrictedViews.includes(viewName) && !isUserLoggedIn) {
-    // Blocco accesso, apro modal login
     const btnLogin = $("#btnShowLogin");
     if (btnLogin) btnLogin.click();
     return;
@@ -30,13 +14,11 @@ function setActiveMenu(viewName) {
   const menu = $("#sidebarMenu");
   const title = $("#topbarTitle");
   if (!menu) return;
-
-  // aggiorna stato "active" nel menu
+  
   $all(".menu__item", menu).forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.view === viewName);
   });
 
-  // mostra solo la view corretta
   $all(".view").forEach(hide);
   show($(`#view-${viewName}`));
 
@@ -48,12 +30,10 @@ function setActiveMenu(viewName) {
   };
   if (title) title.textContent = titles[viewName] || "PatenteLAB";
 
-  // Carica dati dinamici
   if (viewName === "storico") loadStorico();
   if (viewName === "ostiche") loadOstiche();
 }
 
-/* Sidebar (mobile) */
 function setupSidebarToggle() {
   const sidebar = $(".sidebar");
   const btnToggle = $("#btnToggleSidebar");
@@ -64,7 +44,6 @@ function setupSidebarToggle() {
     sidebar.classList.toggle("is-open");
   });
 
-  // Chiudi sidebar su mobile quando clicchi una voce
   menu.addEventListener("click", (e) => {
     const btn = e.target.closest(".menu__item");
     if (!btn) return;
@@ -73,7 +52,6 @@ function setupSidebarToggle() {
   });
 }
 
-/* Auth state (solo UI) */
 function setLoggedIn(isLoggedIn) {
   isUserLoggedIn = isLoggedIn;
   const btnLogin = $("#btnShowLogin");
@@ -90,7 +68,6 @@ function setLoggedIn(isLoggedIn) {
     hide(btnLogout);
   }
 
-  // Se sono sloggato e mi trovo su una pagina protetta, torno alla dashboard
   if (!isLoggedIn) {
     const activeItem = $(".menu__item.is-active");
     if (activeItem && restrictedViews.includes(activeItem.dataset.view)) {
@@ -98,7 +75,6 @@ function setLoggedIn(isLoggedIn) {
     }
   }
 
-  /* Gestione Card Bloccate (Dashboard) */
   const lockableCards = $all("[data-lockable='true']");
   lockableCards.forEach(card => {
     if (isLoggedIn) {
@@ -113,7 +89,6 @@ function setLoggedIn(isLoggedIn) {
     };
   });
 
-  // Stats section: mostra/nascondi e carica dati
   const statsSection = $("#statsSection");
   if (isLoggedIn) {
     show(statsSection);
@@ -129,12 +104,10 @@ async function loadSessionStatus() {
     const data = await res.json();
     setLoggedIn(Boolean(data.logged));
   } catch (err) {
-    // se fallisce, resta “non loggato”
     setLoggedIn(false);
   }
 }
 
-/* Logout */
 function setupLogout() {
   const btnLogout = $("#btnLogout");
 
@@ -149,7 +122,6 @@ function setupLogout() {
   }
 }
 
-/* Stats Dashboard */
 async function loadStats() {
   try {
     const res = await fetch("../php/get_stats.php");
@@ -160,101 +132,215 @@ async function loadStats() {
     el("statSuperati").textContent = data.superati;
     el("statPercentuale").textContent = data.percentuale + "%";
     el("statErrori").textContent = data.media_errori;
-  } catch { /* silenzioso */ }
+  } catch {}
 }
 
-/* Domande Ostiche */
 async function loadOstiche() {
   const container = $("#ostiche-list");
   if (!container) return;
-  container.innerHTML = '<p style="color:#64748b">Caricamento...</p>';
+
+  createCustomP(container, "Caricamento...", "#64748b");
 
   try {
     const res = await fetch("../php/get_most_wrong.php");
     const data = await res.json();
-    if (data.status !== "success" || !data.questions.length) {
-      container.innerHTML = '<p style="color:#64748b">Nessun dato disponibile ancora.</p>';
+
+    if (data.status !== "success" || !data.questions || !data.questions.length) {
+        container.replaceChildren();
+        createCustomP(container, "Nessuna domanda ostica trovata.", "#64748b");
       return;
     }
-    container.innerHTML = data.questions.map((q, i) => {
-      const img = q.immagine ? `<img src="../immagini/quiz/${q.immagine}" class="storico-thumb" alt="">` : "";
-      return `<div class="storico-item">
-        <div class="storico-header">
-          <span class="ostica-rank">#${i + 1}</span>
-          <span class="storico-q__text">${q.testo}</span>
-          <span class="storico-meta">${q.errori} errori — ${q.categoria}</span>
-        </div>
-        ${img ? `<div class="storico-q__img">${img}</div>` : ""}
-      </div>`;
-    }).join("");
+
+    container.replaceChildren();
+    const frag = document.createDocumentFragment();
+
+    data.questions.forEach((q, i) => {
+      const item = document.createElement("div");
+      item.className = "storico-item";
+
+      const header = document.createElement("div");
+      header.className = "storico-header";
+
+      const rank = document.createElement("span");
+      rank.className = "ostica-rank";
+      rank.textContent = "#" + (i + 1);
+
+      const text = document.createElement("span");
+      text.className = "storico-q__text";
+      text.textContent = q.testo ?? "";
+
+      const meta = document.createElement("span");
+      meta.className = "storico-meta";
+      const errori = (q.errori ?? 0);
+      const categoria = (q.categoria ?? "");
+      meta.textContent = `${errori} errori — ${categoria}`;
+
+      header.append(rank, text, meta);
+      item.appendChild(header);
+
+      if (q.immagine) {
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "storico-q__img";
+
+        const img = document.createElement("img");
+        img.src = "../immagini/quiz/" + q.immagine;
+        img.className = "storico-thumb";
+        img.alt = "";
+
+        imgWrap.appendChild(img);
+        item.appendChild(imgWrap);
+      }
+
+      frag.appendChild(item);
+    });
+
+    container.appendChild(frag);
   } catch {
-    container.innerHTML = '<p style="color:#dc2626">Errore nel caricamento.</p>';
+    createCustomP(container, "Errore nel caricamento.", "#dc2626");
   }
 }
 
-/* Storico */
 async function loadStorico() {
   const container = $("#storico-list");
   if (!container) return;
-  container.innerHTML = '<p style="color:#64748b">Caricamento...</p>';
+  
+    createCustomP(container, "Caricamento...", "#64748b");
 
-  try {
+    try {
     const res = await fetch("../php/get_history.php");
     const data = await res.json();
-    if (data.status !== "success" || !data.history.length) {
-      container.innerHTML = '<p style="color:#64748b">Nessuna partita trovata.</p>';
+
+    if (data.status !== "success" || !data.history || !data.history.length) {
+      createCustomP(container, "Nessuna partita trovata.", "#64748b");
       return;
     }
-    container.innerHTML = data.history.map(renderStoricoItem).join("");
+
+    container.replaceChildren();
+    const frag = document.createDocumentFragment();
+
+    data.history.forEach((item) => {
+      frag.appendChild(renderStoricoItemElement(item));
+    });
+
+    container.appendChild(frag);
   } catch {
-    container.innerHTML = '<p style="color:#dc2626">Errore nel caricamento.</p>';
+    createCustomP(container, "Errore nel caricamento.", "#dc2626");
   }
 }
 
-function renderStoricoItem(item) {
-  const icon = item.esito === "superato"
-    ? '<span class="material-symbols-outlined" style="color:#22c55e">check_circle</span>'
-    : '<span class="material-symbols-outlined" style="color:#ef4444">cancel</span>';
-  const data = new Date(item.data).toLocaleDateString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+function renderStoricoItemElement(item) {
   const hasDetail = item.risposte && item.risposte.length;
 
-  let detailHtml = "";
+  const root = document.createElement("div");
+  root.className = "storico-item" + (hasDetail ? " has-detail" : "");
+
+  const header = document.createElement("div");
+  header.className = "storico-header";
+
+  const ok = item.esito === "superato";
+  const icon = ok
+    ? makeIcon("check_circle", "#22c55e")
+    : makeIcon("cancel", "#ef4444");
+
+  const title = document.createElement("span");
+  title.className = "storico-title";
+  title.textContent = "Partita " + (item.numero ?? "");
+
+  const meta = document.createElement("span");
+  meta.className = "storico-meta";
+
+  const dt = new Date(item.data);
+  const when = isNaN(dt.getTime())
+    ? ""
+    : dt.toLocaleDateString("it-IT", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+  const punteggio = item.punteggio ?? 0;
+  const totale = item.totale ?? 0;
+  const errori = item.errori ?? 0;
+
+  meta.textContent = `${punteggio}/${totale} — ${errori} errori — ${when}`;
+
+  header.append(icon, title, meta);
+
+  let detail = null;
+
   if (hasDetail) {
-    detailHtml = '<div class="storico-detail hidden">' +
-      item.risposte.map(r => {
-        const rIcon = r.corretto
-          ? '<span class="material-symbols-outlined" style="color:#22c55e;font-size:18px">check</span>'
-          : '<span class="material-symbols-outlined" style="color:#ef4444;font-size:18px">close</span>';
-        const uAns = r.risposta_utente === null ? "Nessuna" : (r.risposta_utente ? "Vero" : "Falso");
-        const cAns = r.risposta_corretta ? "Vero" : "Falso";
-        const img = r.immagine ? `<img src="../immagini/quiz/${r.immagine}" class="storico-thumb" alt="">` : "";
-        return `<div class="storico-q">
-          <div class="storico-q__body">
-            ${rIcon}
-            <span class="storico-q__text">${r.testo}</span>
-          </div>
-          <div class="storico-q__ans">
-            <span>Tua: <b>${uAns}</b></span>
-            <span>Corretta: <b>${cAns}</b></span>
-          </div>
-          ${img ? `<div class="storico-q__img">${img}</div>` : ""}
-        </div>`;
-      }).join("") +
-      "</div>";
+    const exp = makeIcon("expand_more", "#64748b");
+    exp.classList.add("storico-espandi");
+    header.appendChild(exp);
+
+    detail = document.createElement("div");
+    detail.className = "storico-detail hidden";
+
+    item.risposte.forEach((r) => {
+      const q = document.createElement("div");
+      q.className = "storico-q";
+
+      const body = document.createElement("div");
+      body.className = "storico-q__body";
+
+      const rOk = Boolean(r.corretto);
+      const rIcon = rOk
+        ? makeIcon("check", "#22c55e", 18)
+        : makeIcon("close", "#ef4444", 18);
+
+      const qText = document.createElement("span");
+      qText.className = "storico-q__text";
+      qText.textContent = r.testo ?? "";
+
+      body.append(rIcon, qText);
+
+      const ans = document.createElement("div");
+      ans.className = "storico-q__ans";
+
+      const u = document.createElement("span");
+      const uAns =
+        r.risposta_utente === null ? "Nessuna" : (r.risposta_utente ? "Vero" : "Falso");
+      u.textContent = "Tua: ";
+      const uB = document.createElement("b");
+      uB.textContent = uAns;
+      u.appendChild(uB);
+
+      const c = document.createElement("span");
+      const cAns = r.risposta_corretta ? "Vero" : "Falso";
+      c.textContent = "Corretta: ";
+      const cB = document.createElement("b");
+      cB.textContent = cAns;
+      c.appendChild(cB);
+
+      ans.append(u, c);
+
+      q.append(body, ans);
+
+      if (r.immagine) {
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "storico-q__img";
+        imgWrap.appendChild(makeImgThumb(r.immagine));
+        q.appendChild(imgWrap);
+      }
+
+      detail.appendChild(q);
+    });
+
+    root.addEventListener("click", (e) => {
+      if (!detail) return;
+      detail.classList.toggle("hidden");
+    });
+
+    root.append(header, detail);
+  } else {
+    root.appendChild(header);
   }
 
-  return `<div class="storico-item${hasDetail ? ' has-detail' : ''}" onclick="this.querySelector('.storico-detail')?.classList.toggle('hidden')">
-    <div class="storico-header">
-      ${icon}
-      <span class="storico-title">Partita ${item.numero}</span>
-      <span class="storico-meta">${item.punteggio}/${item.totale} — ${item.errori} errori — ${data}</span>
-      ${hasDetail ? '<span class="material-symbols-outlined storico-chevron">expand_more</span>' : ''}
-    </div>
-    ${detailHtml}
-  </div>`;
+  return root;
 }
 
-/* Init */
 async function init() {
   setActiveMenu("dashboard");
   setupSidebarToggle();

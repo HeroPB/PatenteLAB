@@ -1,3 +1,4 @@
+import { $id, show, hide, addClass, removeClass } from "./utils.js";
 
 const TOTAL_QUESTIONS = 30;
 const TIME_LIMIT_MINUTES = 20;
@@ -12,14 +13,14 @@ let timeRemaining = TIME_LIMIT_MINUTES * 60;
 let isGameOver = false;
 
 // DOM Elements
-const elQuestionsGrid = document.getElementById("questionsGrid");
-const elAnsweredCount = document.getElementById("answeredCount");
-const elTimerValue = document.getElementById("timerValue");
-const elTimerFill = document.getElementById("timerFill");
-const elCurrentQNum = document.getElementById("currentQNum");
-const elQuestionText = document.getElementById("questionText");
-const elQuestionImg = document.getElementById("questionImg");
-const elBtnFlag = document.getElementById("btnFlag");
+const elQuestionsGrid = $id("questionsGrid");
+const elAnsweredCount = $id("answeredCount");
+const elTimerValue = $id("timerValue");
+const elTimerFill = $id("timerFill");
+const elCurrentQNum = $id("currentQNum");
+const elQuestionText = $id("questionText");
+const elQuestionImg = $id("questionImg");
+const elBtnFlag = $id("btnFlag");
 
 // Init
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,7 +40,6 @@ async function initGame() {
 }
 
 async function fetchQuestions() {
-  // Show loading state if needed
   elQuestionText.textContent = "Caricamento...";
   
   const res = await fetch("../php/get_questions.php");
@@ -47,8 +47,6 @@ async function fetchQuestions() {
   
   questions = await res.json();
   
-  // If we have fewer than 30 questions in DB, adjust logic or duplications
-  // For now assume DB has enough.
   if (questions.length === 0) {
     elQuestionText.textContent = "Nessuna domanda trovata nel database.";
     throw new Error("No questions");
@@ -57,24 +55,23 @@ async function fetchQuestions() {
 
 function renderSidebar() {
   elQuestionsGrid.innerHTML = "";
-  questions.forEach((q, index) => {
+  questions.forEach((_, index) => {
     const btn = document.createElement("button");
     btn.className = "q-btn";
     btn.textContent = index + 1;
     btn.onclick = () => {
-      isTransitioning = false; // Allow manual override
+      isTransitioning = false;
       loadQuestion(index);
     };
     
-    // States
-    if (index === currentQuestionIndex) btn.classList.add("is-active");
-    if (userAnswers[index] !== null) btn.classList.add("is-answered");
-    if (flags[index]) btn.classList.add("is-flagged");
 
-    // Result Coloring
+    if (index === currentQuestionIndex) addClass(btn, "is-active");
+    if (userAnswers[index] !== null) addClass(btn, "is-answered");
+    if (flags[index]) addClass(btn, "is-flagged");
+
     if (isGameOver) {
       const isCorrect = userAnswers[index] === questions[index].correct;
-      btn.classList.add(isCorrect ? "is-correct" : "is-wrong");
+      addClass(btn, isCorrect ? "is-correct" : "is-wrong");
     }
 
     elQuestionsGrid.appendChild(btn);
@@ -94,79 +91,72 @@ function loadQuestion(index) {
   elCurrentQNum.textContent = index + 1;
   elQuestionText.textContent = q.text;
   
-  const elQuestionImgContainer = document.getElementById("questionImageContainer");
+  const elQuestionImgContainer = $id("questionImageContainer");
   if (q.image) {
     elQuestionImg.src = q.image;
-    elQuestionImgContainer.style.display = "block";
+    show(elQuestionImgContainer);
   } else {
-    elQuestionImgContainer.style.display = "none";
+    hide(elQuestionImgContainer);
   }
 
-  // Update Flag Button State
   if (flags[index]) {
-    elBtnFlag.classList.add("is-active");
+    addClass(elBtnFlag, "is-active");
   } else {
-    elBtnFlag.classList.remove("is-active");
+    removeClass(elBtnFlag, "is-active");
   }
 
-  updateAnswerButtons(); // Visual feedback
-  renderSidebar(); // Refresh active state
+  updateAnswerButtons();
+  renderSidebar();
 }
 
 function updateAnswerButtons() {
   const ans = userAnswers[currentQuestionIndex];
-  const btnTrue = document.getElementById("btnTrue");
-  const btnFalse = document.getElementById("btnFalse");
+  const btnTrue = $id("btnTrue");
+  const btnFalse = $id("btnFalse");
   const correct = questions[currentQuestionIndex].correct;
 
-  // Reset base classes
   btnTrue.className = "ans-btn ans-btn--true";
   btnFalse.className = "ans-btn ans-btn--false";
 
-  // Mode: Gameplay (Selecting answers)
   if (!isGameOver) {
     if (ans === true) {
-      btnTrue.classList.add("is-selected");
-      btnFalse.classList.add("is-faded");
+      addClass(btnTrue, "is-selected");
+      addClass(btnFalse, "is-faded");
     } else if (ans === false) {
-      btnFalse.classList.add("is-selected");
-      btnTrue.classList.add("is-faded");
+      addClass(btnFalse, "is-selected");
+      addClass(btnTrue, "is-faded");
     }
     return;
   }
 
-  // Mode: Review (Game Over)
-  // 1. Show correct answer
-  if (correct === true) btnTrue.classList.add("show-correct");
-  else btnFalse.classList.add("show-correct");
 
-  // 2. Show user selection (if valid and wrong)
+  if (correct === true) addClass(btnTrue, "show-correct");
+  else addClass(btnFalse, "show-correct");
+
   if (ans === true) {
-    btnTrue.classList.add("user-picked");
-    if (correct !== true) btnTrue.classList.add("show-wrong");
+    addClass(btnTrue, "user-picked");
+    if (correct !== true) addClass(btnTrue, "show-wrong");
   } else if (ans === false) {
-    btnFalse.classList.add("user-picked");
-    if (correct !== false) btnFalse.classList.add("show-wrong");
+    addClass(btnFalse, "user-picked");
+    if (correct !== false) addClass(btnFalse, "show-wrong");
   }
 
-  // 3. Fade unselected/irrelevant
-  if (correct !== true && ans !== true) btnTrue.classList.add("is-faded-review");
-  if (correct !== false && ans !== false) btnFalse.classList.add("is-faded-review");
+  if (correct !== true && ans !== true) addClass(btnTrue, "is-faded-review");
+  if (correct !== false && ans !== false) addClass(btnFalse, "is-faded-review");
 }
 
 let isTransitioning = false;
 
 function handleAnswer(answer) {
-  if (isTransitioning) return; // Prevent spamming
+  if (isTransitioning) return;
 
   userAnswers[currentQuestionIndex] = answer;
-  updateAnswerButtons(); // Update UI immediately
+  updateAnswerButtons();
   renderSidebar();
   
-  // Auto-advance to next question if not last
   if (currentQuestionIndex < TOTAL_QUESTIONS - 1) {
     isTransitioning = true;
-    const nextIndex = currentQuestionIndex + 1; // Capture index NOW
+    const nextIndex = currentQuestionIndex + 1;
     setTimeout(() => {
       loadQuestion(nextIndex);
       isTransitioning = false;
@@ -178,18 +168,17 @@ function handleAnswer(answer) {
 
 function checkCompletion() {
   const allAnswered = userAnswers.every(a => a !== null);
-  const btnSubmit = document.getElementById("btnSubmit");
+  const btnSubmit = $id("btnSubmit");
   if (allAnswered) {
-    btnSubmit.classList.remove("hidden");
+    removeClass(btnSubmit, "hidden");
   } else {
-    btnSubmit.classList.add("hidden");
+    addClass(btnSubmit, "hidden");
   }
 }
 
 function toggleFlag() {
   flags[currentQuestionIndex] = !flags[currentQuestionIndex];
   
-  // Toggle visual state immediately
   elBtnFlag.classList.toggle("is-active");
   renderSidebar();
 }
@@ -216,54 +205,49 @@ function updateTimerDisplay() {
   const percentage = (timeRemaining / (TIME_LIMIT_MINUTES * 60)) * 100;
   elTimerFill.style.width = `${percentage}%`;
   
-  if (percentage < 10) elTimerFill.style.background = "#ef4444"; // Red when running out
+  if (percentage < 10) elTimerFill.style.background = "#ef4444";
 }
 
 function setupEvents() {
-  document.getElementById("btnTrue").onclick = () => handleAnswer(true);
-  document.getElementById("btnFalse").onclick = () => handleAnswer(false);
+  $id("btnTrue").onclick = () => handleAnswer(true);
+  $id("btnFalse").onclick = () => handleAnswer(false);
   elBtnFlag.onclick = toggleFlag;
   
-  document.getElementById("btnSubmit").onclick = () => {
+  $id("btnSubmit").onclick = () => {
     if(confirm("Confermi di voler terminare l'esame?")) {
       finishGame();
     }
   };
 
-  document.getElementById("btnExit").onclick = () => {
+  $id("btnExit").onclick = () => {
     if (isGameOver) {
-      // Already saved, just exit
       window.location.href = "index.html";
     } else if (confirm("Vuoi davvero uscire dalla simulazione? I progressi non saranno salvati.")) {
       window.location.href = "index.html";
     }
   };
   
-  // Modal Buttons
-  document.getElementById("btnHome").onclick = () => window.location.href = "index.html";
-  document.getElementById("btnReview").onclick = () => {
-    document.getElementById("resultModal").classList.add("hidden");
-    // Stay in game, but in review mode
+  $id("btnHome").onclick = () => window.location.href = "index.html";
+  $id("btnReview").onclick = () => {
+    $id("resultModal").classList.add("hidden");
   };
 
-  // Keyboard Shortcuts
   document.addEventListener("keydown", (e) => {
-    if (isGameOver) return; // Disable keyboard answering in review
-    if (e.key === "ArrowLeft") handleAnswer(true); // Vero
-    if (e.key === "ArrowRight") handleAnswer(false); // Falso
+    if (isGameOver) return;
+    if (e.key === "ArrowLeft") handleAnswer(true);
+    if (e.key === "ArrowRight") handleAnswer(false);
     if (e.key === "f" || e.key === "F") toggleFlag();
   });
 }
 
 async function finishGame() {
   clearInterval(timerInterval);
-  isGameOver = true; // Review Mode ON
+  isGameOver = true;
   
-  // Disable/hide game controls
-  document.getElementById("btnTrue").disabled = true;
-  document.getElementById("btnFalse").disabled = true;
-  document.getElementById("btnSubmit").classList.add("hidden");
-  document.getElementById("btnFlag").classList.add("hidden");
+  $id("btnTrue").disabled = true;
+  $id("btnFalse").disabled = true;
+  $id("btnSubmit").classList.add("hidden");
+  $id("btnFlag").classList.add("hidden");
 
   // Prepare payload
   const payload = {
@@ -282,9 +266,7 @@ async function finishGame() {
 
     let data;
     
-    // Handle not-logged-in case or API error: calculate locally
     if (!res.ok) {
-      // Calculate errors locally
       let localErrors = 0;
       questions.forEach((q, i) => {
         if (userAnswers[i] !== q.correct) localErrors++;
@@ -299,31 +281,29 @@ async function finishGame() {
       data = await res.json();
     }
     
-    // Ensure errors is a number
     const errCount = typeof data.errors === 'number' ? data.errors : 0;
     
-    // Populate Modal
-    const modal = document.getElementById("resultModal");
-    const title = document.getElementById("resultTitle");
-    const scoreVal = document.getElementById("scoreValue");
-    const circle = document.getElementById("scoreCircle");
-    const msg = document.getElementById("resultMessage");
+    const modal = $id("resultModal");
+    const title = $id("resultTitle");
+    const scoreVal = $id("scoreValue");
+    const circle = $id("scoreCircle");
+    const msg = $id("resultMessage");
 
-    modal.classList.remove("hidden");
+    removeClass(modal, "hidden");
     scoreVal.textContent = errCount;
 
     if (data.esito === 'superato') {
-      title.textContent = "Esame Superato! 🎉";
+      title.textContent = "Esame Superato!";
       circle.className = "score-circle is-success";
       msg.textContent = `Hai fatto solo ${errCount} errori. Ottimo lavoro!`;
     } else {
-      title.textContent = "Non Superato 😔";
+      title.textContent = "Non Superato";
       circle.className = "score-circle is-fail";
       msg.textContent = `Hai commesso ${errCount} errori (max 3). Ripassa gli errori e riprova.`;
     }
 
-    renderSidebar(); // Update colors
-    loadQuestion(currentQuestionIndex); // Refresh current view
+    renderSidebar();
+    loadQuestion(currentQuestionIndex);
 
   } catch (err) {
     alert("Errore salvataggio: " + err.message);

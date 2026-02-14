@@ -1,11 +1,8 @@
 <?php
 require_once __DIR__ . "/_utils.php";
 
-header('Content-Type: application/json');
-
 $conn = dbConnect();
 
-// Top 20 most wrong questions across all users
 $sql = "SELECT q.id, q.testo, q.immagine, q.categoria, COUNT(e.id) as num_errori
         FROM errori_ripasso e
         JOIN quesiti q ON e.id_quesito = q.id

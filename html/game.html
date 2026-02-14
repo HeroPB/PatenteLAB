@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PatenteDuel - Simulazione</title>
+  <link rel="stylesheet" href="../css/font.css">
   <link rel="stylesheet" href="../css/style.css?v=3">
   <link rel="stylesheet" href="../css/game.css">
-  <script src="../js/game.js" defer></script>
+  <script src="../js/game.js" type="module"></script>
 </head>
 <body>
 
-  <div class="game-app">
+  <div class="quiz-pagina">
     
     <!-- SIDEBAR: PROGRESS -->
     <aside class="game-sidebar">
@@ -51,7 +52,6 @@
         </div>
       </header>
 
-      <!-- QUESTION CARD -->
       <section class="question-container">
         
         <div class="question-card">
@@ -60,7 +60,6 @@
           </div>
 
           <div class="question-image" id="questionImageContainer">
-            <!-- Img placeholder -->
             <img src="" alt="Immagine Quiz" id="questionImg">
           </div>
 
@@ -71,7 +70,6 @@
 
       </section>
 
-      <!-- CONTROLS -->
       <footer class="game-controls">
         <button class="ans-btn ans-btn--true" id="btnTrue">
           <span class="material-symbols-outlined">check_circle</span>
@@ -90,7 +88,6 @@
 
   </div>
 
-  <!-- RESULT MODAL -->
   <div class="modal-overlay hidden" id="resultModal">
     <div class="modal-card">
       <div class="modal-header">

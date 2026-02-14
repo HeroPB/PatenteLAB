@@ -1,29 +1,27 @@
 <?php
 require_once __DIR__ . "/_utils.php";
+startJsonSession();
+requireLogin();
 
-header('Content-Type: application/json');
-session_start();
+$userId = currentUserId();
+$input = readJsonBody();
 
-if (!isset($_SESSION['user'])) {
-    jsonResponse(["success" => false, "message" => "Utente non loggato"], 401);
+if (!isset($input["answers"]) || !is_array($input["answers"])) {
+    jsonResponse(["status" => "error", "message" => "Dati mancanti"], 400);
 }
 
-$userId = $_SESSION['user']['id'];
-$input = json_decode(file_get_contents('php://input'), true);
-
-if (!isset($input['answers'])) {
-    jsonResponse(["error" => "Dati mancanti"], 400);
-}
-
-$userAnswers = $input['answers']; // Array of {id: int, answer: bool|null}
+$userAnswers = $input['answers'];
 $conn = dbConnect();
 
-// Fetch correct answers + testo + immagine for all questions
-$questionIds = array_map(function ($a) {
-    return (int)$a['id'];
-}, $userAnswers);
+$questionIds = [];
+foreach ($userAnswers as $a) {
+    if (!is_array($a) || !isset($a["id"])) continue;
+    $questionIds[] = (int)$a["id"];
+}
+$questionIds = array_values(array_unique(array_filter($questionIds, fn($x) => $x > 0)));
+
 if (empty($questionIds)) {
-    jsonResponse(["success" => true, "score" => 0, "total" => 0]);
+    jsonResponse(["status" => "success", "score" => 0, "errors" => 0, "total" => 0, "esito" => "respinto"]);
 }
 
 $idsStr = implode(',', $questionIds);
@@ -43,7 +41,7 @@ $risposteDettaglio = [];
 
 foreach ($userAnswers as $ans) {
     $qid = (int)$ans['id'];
-    $uAns = $ans['answer']; // true, false, or null
+    $uAns = $ans['answer'];
 
     if (!isset($dbData[$qid])) continue;
 
@@ -71,12 +69,9 @@ foreach ($userAnswers as $ans) {
 $esito = ($errors <= 3) ? 'superato' : 'respinto';
 $risposteJson = json_encode($risposteDettaglio);
 
-// Save to Cronologia (with detailed answers)
 $stmt = $conn->prepare("INSERT INTO cronologia_quiz (id_utente, punteggio, totale_domande, errori, esito, risposte_json) VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->bind_param("iiiiss", $userId, $score, $total, $errors, $esito, $risposteJson);
 $stmt->execute();
-
-// Save Errors to Errori Ripasso
 if (!empty($wrongQuestions)) {
     $stmtErr = $conn->prepare("INSERT INTO errori_ripasso (id_utente, id_quesito, data_errore) VALUES (?, ?, NOW())");
     foreach ($wrongQuestions as $qid) {

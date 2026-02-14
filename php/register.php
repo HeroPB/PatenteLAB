@@ -1,6 +1,7 @@
 <?php
-session_start();
 require_once __DIR__ . "/_utils.php";
+startJsonSession();
+
 
 $username = post("username");
 $password = post("password");
@@ -9,17 +10,11 @@ if ($username === "" || $password === "") {
   jsonResponse(["status" => "error", "message" => "Username e password obbligatori"], 400);
 }
 
-if (!preg_match('/^[a-z][a-z0-9._]{2,19}$/', $username)) {
-  jsonResponse(["status" => "error", "message" => "Username non valido (3-20 car., minuscole, numeri, . e _)"], 400);
-}
-
-if (strlen($password) < 6 || strlen($password) > 72) {
-  jsonResponse(["status" => "error", "message" => "Password deve essere 6-72 caratteri"], 400);
-}
+validateUsername($username, "Username non valido (3-20 car., minuscole, numeri, . e _)");
+validatePassword($password, "Password deve essere 6-72 caratteri");
 
 $conn = dbConnect();
 
-// verifica username già esistente
 $stmt = $conn->prepare("SELECT id FROM utenti WHERE username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();

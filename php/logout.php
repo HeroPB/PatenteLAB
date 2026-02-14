@@ -1,7 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . "/_utils.php";
+startJsonSession();
+
 $_SESSION = [];
 session_destroy();
 
-header("Content-Type: application/json; charset=utf-8");
-echo json_encode(["status" => "success", "message" => "Logout ok"]);
+jsonResponse(["status" => "success", "message" => "Logout ok"]);

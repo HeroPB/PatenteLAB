@@ -1,9 +1,7 @@
 "use strict";
-/* =========================
-   LOGIN
-========================= */
+import { $id } from "./utils.js";
 
-const loginForm = document.getElementById("loginForm");
+const loginForm = $id("loginForm");
 
 if (loginForm){
   loginForm.addEventListener("submit", async (e) => {
@@ -30,11 +28,7 @@ if (loginForm){
   });
 }
 
-/* =========================
-   REGISTER
-========================= */
-
-const registerForm = document.getElementById("registerForm");
+const registerForm = $id("registerForm");
 
 if (registerForm){
   registerForm.addEventListener("submit", async (e) => {

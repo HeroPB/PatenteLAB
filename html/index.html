@@ -4,29 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PatenteLAB</title>
+  <link rel="stylesheet" href="../css/font.css">
   <link rel="stylesheet" href="../css/style.css?v=8">
-  <script src="../js/main.js?v=4" defer></script>
+  <script src="../js/main.js?v=4" type="module"></script>
 </head>
 
 <body>
-  <div class="app">
+  <div class="pagina">
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <header class="brand">
-        <div class="brand__icon">
+      <header class="patente">
+        <div class="patente__icon">
           <span class="material-symbols-outlined" aria-hidden="true">directions_car</span>
         </div>
 
-        <div class="brand__text">
-          <h1 class="brand__title">PatenteLAB</h1>
-          <p class="brand__subtitle">Preparazione Esame</p>
+        <div class="patente__text">
+          <h1 class="patente__title">PatenteLAB</h1>
+          <p class="patente__subtitle">Preparazione Esame</p>
         </div>
       </header>
 
       <h2 class="section-title">Menu</h2>
 
-      <nav class="menu" id="sidebarMenu" aria-label="Navigazione principale">
+      <nav class="menu" id="sidebarMenu">
         <button class="menu__item is-active" type="button" data-view="dashboard">
           <span class="menu__icon">
             <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
@@ -56,10 +57,9 @@
       </div>
     </aside>
 
-    <!-- Contenuto principale -->
     <main class="main">
       <header class="topbar">
-        <button class="icon-btn" id="btnToggleSidebar" type="button" aria-label="Apri menu">
+        <button class="icon-btn" id="btnToggleSidebar" type="button">
           <span class="material-symbols-outlined" aria-hidden="true">menu</span>
         </button>
         <div class="topbar__title" id="topbarTitle">Dashboard</div>
@@ -90,7 +90,7 @@
                 <span class="material-symbols-outlined card__lock-icon">lock</span>
                 <span class="card__lock-text">Accedi per sbloccare</span>
               </div>
-              <div class="card__icon-box app-icon-orange">
+              <div class="card__icon-box" style="background: #f97316;">
                 <span class="material-symbols-outlined">restart_alt</span>
               </div>
               <div class="card__text">

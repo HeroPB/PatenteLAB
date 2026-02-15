@@ -7,7 +7,7 @@ $data = readJsonBody();
 $ids = isset($data["ids"]) ? $data["ids"] : [];
 
 if (!is_array($ids) || count($ids) === 0) {
-    jsonResponse(["error" => "Nessuna domanda selezionata"], 400);
+    jsonError("Nessuna domanda selezionata", 400);
 }
 
 $ids = array_map("intval", $ids);
@@ -33,4 +33,4 @@ while ($row = $res->fetch_assoc()) {
 $stmt->close();
 $conn->close();
 
-jsonResponse($questions);
+jsonSuccess(["questions" => $questions]);

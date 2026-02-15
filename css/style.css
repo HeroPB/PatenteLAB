@@ -11,7 +11,6 @@
   vertical-align: middle;
 }
 
-/* BASE */
 :root {
   --color-primary: #0d7ff2;
   --color-primary-hover: #0b6bcb;
@@ -398,25 +397,6 @@ body {
   text-transform: uppercase;
   margin-bottom: 12px;
 }
-
-/*.card--challenge,
-.card--review {
-  min-height: 180px;
-  justify-content: flex-end;
-  align-items: flex-start;
-  position: relative;
-}
-.card--challenge {
-  background: linear-gradient(135deg, #818cf8, #6366f1);
-  color: #fff;
-  background-size: cover;
-}
-.card--challenge > *,
-.card--review > * {
-  position: relative;
-  z-index: 1;
-}*/
-
 .card--review {
   background: #1e293b;
   color: #fff;

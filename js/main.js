@@ -102,7 +102,7 @@ async function loadSessionStatus() {
   try {
     const res = await fetch("../php/session_status.php", { method: "GET" });
     const data = await res.json();
-    setLoggedIn(Boolean(data.logged));
+    setLoggedIn(Boolean(data.status === "success" && data.data && data.data.logged));
   } catch (err) {
     setLoggedIn(false);
   }
@@ -127,11 +127,12 @@ async function loadStats() {
     const res = await fetch("../php/get_stats.php");
     const data = await res.json();
     if (data.status !== "success") return;
+    const stats = data.data || {};
     const el = (id) => document.getElementById(id);
-    el("statTotale").textContent = data.totale;
-    el("statSuperati").textContent = data.superati;
-    el("statPercentuale").textContent = data.percentuale + "%";
-    el("statErrori").textContent = data.media_errori;
+    el("statTotale").textContent = stats.totale;
+    el("statSuperati").textContent = stats.superati;
+    el("statPercentuale").textContent = stats.percentuale + "%";
+    el("statErrori").textContent = stats.media_errori;
   } catch {}
 }
 
@@ -168,7 +169,7 @@ function setupReviewCard() {
     try {
       const res = await fetch("../php/get_user_errors.php");
       const data = await res.json();
-      reviewQuestions = data.questions || [];
+      reviewQuestions = (data.data && data.data.questions) || [];
 
       if (reviewQuestions.length === 0) {
         desc.textContent = "Non hai ancora errori da ripassare.";
@@ -250,8 +251,9 @@ async function loadOstiche() {
   try {
     const res = await fetch("../php/get_most_wrong.php");
     const data = await res.json();
+    const questions = data.data && data.data.questions ? data.data.questions : [];
 
-    if (data.status !== "success" || !data.questions || !data.questions.length) {
+    if (data.status !== "success" || !questions.length) {
         container.replaceChildren();
         createCustomP(container, "Nessuna domanda ostica trovata.", "#64748b");
       return;
@@ -260,7 +262,7 @@ async function loadOstiche() {
     container.replaceChildren();
     const frag = document.createDocumentFragment();
 
-    data.questions.forEach((q, i) => {
+    questions.forEach((q, i) => {
       const item = document.createElement("div");
       item.className = "storico-item";
 
@@ -315,8 +317,9 @@ async function loadStorico() {
     try {
     const res = await fetch("../php/get_history.php");
     const data = await res.json();
+    const history = data.data && data.data.history ? data.data.history : [];
 
-    if (data.status !== "success" || !data.history || !data.history.length) {
+    if (data.status !== "success" || !history.length) {
       createCustomP(container, "Nessuna partita trovata.", "#64748b");
       return;
     }
@@ -324,7 +327,7 @@ async function loadStorico() {
     container.replaceChildren();
     const frag = document.createDocumentFragment();
 
-    data.history.forEach((item) => {
+    history.forEach((item) => {
       frag.appendChild(renderStoricoItemElement(item));
     });
 

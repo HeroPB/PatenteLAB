@@ -5,4 +5,4 @@ startJsonSession();
 $_SESSION = [];
 session_destroy();
 
-jsonResponse(["status" => "success", "message" => "Logout ok"]);
+jsonSuccess(null, "Logout ok");

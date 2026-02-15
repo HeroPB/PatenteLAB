@@ -7,7 +7,7 @@ $userId = currentUserId();
 $input = readJsonBody();
 
 if (!isset($input["answers"]) || !is_array($input["answers"])) {
-    jsonResponse(["status" => "error", "message" => "Dati mancanti"], 400);
+    jsonError("Dati mancanti", 400);
 }
 
 $userAnswers = $input['answers'];
@@ -21,7 +21,7 @@ foreach ($userAnswers as $a) {
 $questionIds = array_values(array_unique(array_filter($questionIds, fn($x) => $x > 0)));
 
 if (empty($questionIds)) {
-    jsonResponse(["status" => "success", "score" => 0, "errors" => 0, "total" => 0, "esito" => "respinto"]);
+    jsonSuccess(["score" => 0, "errors" => 0, "total" => 0, "esito" => "respinto"]);
 }
 
 $idsStr = implode(',', $questionIds);
@@ -82,8 +82,7 @@ if (!empty($wrongQuestions)) {
 
 $conn->close();
 
-jsonResponse([
-    "success" => "success",
+jsonSuccess([
     "score" => $score,
     "errors" => $errors,
     "total" => $total,

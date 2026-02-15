@@ -31,4 +31,4 @@ while ($row = $res->fetch_assoc()) {
 $stmt->close();
 $conn->close();
 
-jsonResponse(["status" => "success", "questions" => $questions]);
+jsonSuccess(["questions" => $questions]);

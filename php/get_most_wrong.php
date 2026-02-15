@@ -12,7 +12,7 @@ $sql = "SELECT q.id, q.testo, q.immagine, q.categoria, COUNT(e.id) as num_errori
 
 $result = $conn->query($sql);
 if (!$result) {
-    jsonResponse(["status" => "error", "message" => "Errore DB"], 500);
+    jsonError("Errore DB", 500);
 }
 
 $questions = [];
@@ -27,4 +27,4 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $conn->close();
-jsonResponse(["status" => "success", "questions" => $questions]);
+jsonSuccess(["questions" => $questions]);

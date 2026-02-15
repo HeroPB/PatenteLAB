@@ -26,8 +26,7 @@ $percentuale = $totale > 0 ? round(($superati / $totale) * 100) : 0;
 $stmt->close();
 $conn->close();
 
-jsonResponse([
-  "status" => "success",
+jsonSuccess([
   "totale" => $totale,
   "superati" => $superati,
   "percentuale" => $percentuale,

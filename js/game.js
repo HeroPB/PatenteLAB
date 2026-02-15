@@ -52,11 +52,15 @@ async function fetchQuestions() {
       body: JSON.stringify({ ids })
     });
     if (!res.ok) throw new Error("API Error");
-    questions = await res.json();
+    const data = await res.json();
+    if (data.status !== "success") throw new Error(data.message || "API Error");
+    questions = data.data && Array.isArray(data.data.questions) ? data.data.questions : [];
   } else {
     const res = await fetch("../php/get_questions.php");
     if (!res.ok) throw new Error("API Error");
-    questions = await res.json();
+    const data = await res.json();
+    if (data.status !== "success") throw new Error(data.message || "API Error");
+    questions = data.data && Array.isArray(data.data.questions) ? data.data.questions : [];
   }
 
   if (questions.length === 0) {
@@ -289,13 +293,16 @@ async function finishGame() {
       const sessionRes = await fetch("../php/session_status.php");
       const session = await sessionRes.json();
 
-      if (session.logged) {
+      if (session.status === "success" && session.data && session.data.logged) {
         const res = await fetch("../php/save_result.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         data = await res.json();
+        if (data.status !== "success") {
+          throw new Error(data.message || "API Error");
+        }
         saved = true;
       }
     }
@@ -306,14 +313,18 @@ async function finishGame() {
         if (userAnswers[i] !== q.correct) localErrors++;
       });
       data = {
-        errors: localErrors,
-        total: questions.length,
-        esito: localErrors <= 3 ? 'superato' : 'respinto',
-        notSaved: true
+        status: "success",
+        data: {
+          errors: localErrors,
+          total: questions.length,
+          esito: localErrors <= 3 ? 'superato' : 'respinto',
+          notSaved: true
+        }
       };
     }
-    
-    const errCount = typeof data.errors === 'number' ? data.errors : 0;
+
+    const resultData = data.data || {};
+    const errCount = typeof resultData.errors === 'number' ? resultData.errors : 0;
     
     const modal = $id("resultModal");
     const title = $id("resultTitle");
@@ -324,7 +335,7 @@ async function finishGame() {
     removeClass(modal, "hidden");
     scoreVal.textContent = errCount;
 
-    if (data.esito === 'superato') {
+    if (resultData.esito === 'superato') {
       title.textContent = "Esame Superato!";
       circle.className = "score-circle is-success";
       msg.textContent = `Hai fatto solo ${errCount} errori. Ottimo lavoro!`;
@@ -334,7 +345,7 @@ async function finishGame() {
       msg.textContent = `Hai commesso ${errCount} errori (max 3). Ripassa gli errori e riprova.`;
     }
 
-    if (data.notSaved) {
+    if (resultData.notSaved) {
       msg.textContent += "\n⚠️ Accedi per salvare i risultati nello storico.";
     }
 

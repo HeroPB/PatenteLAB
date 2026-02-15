@@ -7,7 +7,7 @@ $email    = post("email");
 $password = post("password");
 
 if ($username === "" || $email === "" || $password === "") {
-  jsonResponse(["status" => "error", "message" => "Username, email e password obbligatori"], 400);
+  jsonError("Username, email e password obbligatori", 400);
 }
 
 validateUsername($username);
@@ -27,14 +27,13 @@ $stmt->close();
 $conn->close();
 
 if (!$row || !password_verify($password, $row["password"])) {
-  jsonResponse(["status" => "error", "message" => "Credenziali non valide"], 401);
+  jsonError("Credenziali non valide", 401);
 }
 
 session_regenerate_id(true);
 $_SESSION["user"] = ["id" => (int)$row["id"], "username" => (string)$row["username"]];
 
-jsonResponse([
-  "status" => "success",
-  "message" => "Login effettuato",
-  "user" => ["id" => (int)$row["id"], "username" => (string)$row["username"]]
-]);
+jsonSuccess(
+  ["user" => ["id" => (int)$row["id"], "username" => (string)$row["username"]]],
+  "Login effettuato"
+);

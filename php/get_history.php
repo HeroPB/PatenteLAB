@@ -42,4 +42,4 @@ foreach ($rows as $i => $row) {
 $stmt->close();
 $conn->close();
 
-jsonResponse(["status" => "success", "history" => $history]);
+jsonSuccess(["history" => $history]);

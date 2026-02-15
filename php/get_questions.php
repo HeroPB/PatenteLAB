@@ -7,7 +7,7 @@ $sql = "SELECT id, testo, immagine, risposta FROM quesiti ORDER BY RAND() LIMIT 
 $result = $conn->query($sql);
 
 if (!$result) {
-    jsonResponse(["error" => "Database error"], 500);
+    jsonError("Database error", 500);
 }
 
 $questions = [];
@@ -22,4 +22,4 @@ while ($row = $result->fetch_assoc()) {
 
 $conn->close();
 
-jsonResponse($questions);
+jsonSuccess(["questions" => $questions]);

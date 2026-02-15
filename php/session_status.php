@@ -3,7 +3,7 @@ require_once __DIR__ . "/_utils.php";
 startJsonSession();
 
 if (isset($_SESSION["user"]) && isset($_SESSION["user"]["id"]) && isset($_SESSION["user"]["username"])) {
-  jsonResponse([
+  jsonSuccess([
     "logged" => true,
     "user" => [
       "id" => (int)$_SESSION["user"]["id"],
@@ -12,4 +12,4 @@ if (isset($_SESSION["user"]) && isset($_SESSION["user"]["id"]) && isset($_SESSIO
   ]);
 }
 
-jsonResponse(["logged" => false]);
+jsonSuccess(["logged" => false]);

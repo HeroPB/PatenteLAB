@@ -1,20 +1,23 @@
 <?php
 require_once __DIR__ . "/_utils.php";
 startJsonSession();
+
 $username = post("username");
+$email    = post("email");
 $password = post("password");
 
-if ($username === "" || $password === "") {
-  jsonResponse(["status" => "error", "message" => "Username e password obbligatori"], 400);
+if ($username === "" || $email === "" || $password === "") {
+  jsonResponse(["status" => "error", "message" => "Username, email e password obbligatori"], 400);
 }
 
 validateUsername($username);
+validateEmail($email);
 validatePassword($password);
 
 $conn = dbConnect();
 
-$stmt = $conn->prepare("SELECT id, username, password FROM utenti WHERE username = ?");
-$stmt->bind_param("s", $username);
+$stmt = $conn->prepare("SELECT id, username, email, password FROM utenti WHERE username = ? AND email = ?");
+$stmt->bind_param("ss", $username, $email);
 $stmt->execute();
 
 $res = $stmt->get_result();

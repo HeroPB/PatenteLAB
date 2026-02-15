@@ -1,18 +1,19 @@
 import { $id, show, hide, addClass, removeClass } from "./utils.js";
 
-const TOTAL_QUESTIONS = 30;
-const TIME_LIMIT_MINUTES = 20;
+const params = new URLSearchParams(location.search);
+const isRipasso = params.get("mode") === "ripasso";
 
-// State
+let TOTAL_QUESTIONS = 30;
+const TIME_LIMIT_MINUTES = 1;
+
 let questions = [];
 let currentQuestionIndex = 0;
-let userAnswers = new Array(TOTAL_QUESTIONS).fill(null); // null, true, false
+let userAnswers = new Array(TOTAL_QUESTIONS).fill(null);
 let flags = new Array(TOTAL_QUESTIONS).fill(false);
 let timerInterval;
 let timeRemaining = TIME_LIMIT_MINUTES * 60;
 let isGameOver = false;
 
-// DOM Elements
 const elQuestionsGrid = $id("questionsGrid");
 const elAnsweredCount = $id("answeredCount");
 const elTimerValue = $id("timerValue");
@@ -22,7 +23,6 @@ const elQuestionText = $id("questionText");
 const elQuestionImg = $id("questionImg");
 const elBtnFlag = $id("btnFlag");
 
-// Init
 document.addEventListener("DOMContentLoaded", () => {
   initGame();
 });
@@ -41,16 +41,40 @@ async function initGame() {
 
 async function fetchQuestions() {
   elQuestionText.textContent = "Caricamento...";
-  
-  const res = await fetch("../php/get_questions.php");
-  if (!res.ok) throw new Error("API Error");
-  
-  questions = await res.json();
-  
+
+  if (isRipasso) {
+    const ids = JSON.parse(sessionStorage.getItem("ripassoIds") || "[]");
+    if (ids.length === 0) throw new Error("Nessuna domanda selezionata");
+
+    const res = await fetch("../php/get_review_questions.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids })
+    });
+    if (!res.ok) throw new Error("API Error");
+    questions = await res.json();
+  } else {
+    const res = await fetch("../php/get_questions.php");
+    if (!res.ok) throw new Error("API Error");
+    questions = await res.json();
+  }
+
   if (questions.length === 0) {
-    elQuestionText.textContent = "Nessuna domanda trovata nel database.";
+    elQuestionText.textContent = "Nessuna domanda trovata.";
     throw new Error("No questions");
   }
+
+  TOTAL_QUESTIONS = questions.length;
+  userAnswers = new Array(TOTAL_QUESTIONS).fill(null);
+  flags = new Array(TOTAL_QUESTIONS).fill(false);
+
+  const elTotal = $id("totalQuestions");
+  if (elTotal) elTotal.textContent = TOTAL_QUESTIONS;
+  
+  const badges = document.querySelectorAll(".totalQBadge");
+  badges.forEach(b => b.textContent = TOTAL_QUESTIONS);
+  
+  console.log("Total Questions updated to:", TOTAL_QUESTIONS);
 }
 
 function renderSidebar() {
@@ -77,13 +101,12 @@ function renderSidebar() {
     elQuestionsGrid.appendChild(btn);
   });
 
-  // Update Progress Text
   const answered = userAnswers.filter(a => a !== null).length;
   elAnsweredCount.textContent = answered;
 }
 
 function loadQuestion(index) {
-  if (index < 0 || index >= questions.length) return; // Safety check
+  if (index < 0 || index >= questions.length) return;
 
   currentQuestionIndex = index;
   const q = questions[index];
@@ -249,7 +272,6 @@ async function finishGame() {
   $id("btnSubmit").classList.add("hidden");
   $id("btnFlag").classList.add("hidden");
 
-  // Prepare payload
   const payload = {
     answers: questions.map((q, index) => ({
       id: q.id,
@@ -258,15 +280,27 @@ async function finishGame() {
   };
 
   try {
-    const res = await fetch("../php/save_result.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
     let data;
-    
-    if (!res.ok) {
+
+    const canSave = !isRipasso;
+    let saved = false;
+
+    if (canSave) {
+      const sessionRes = await fetch("../php/session_status.php");
+      const session = await sessionRes.json();
+
+      if (session.logged) {
+        const res = await fetch("../php/save_result.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        data = await res.json();
+        saved = true;
+      }
+    }
+
+    if (!saved) {
       let localErrors = 0;
       questions.forEach((q, i) => {
         if (userAnswers[i] !== q.correct) localErrors++;
@@ -275,10 +309,8 @@ async function finishGame() {
         errors: localErrors,
         total: questions.length,
         esito: localErrors <= 3 ? 'superato' : 'respinto',
-        success: false
+        notSaved: true
       };
-    } else {
-      data = await res.json();
     }
     
     const errCount = typeof data.errors === 'number' ? data.errors : 0;
@@ -300,6 +332,10 @@ async function finishGame() {
       title.textContent = "Non Superato";
       circle.className = "score-circle is-fail";
       msg.textContent = `Hai commesso ${errCount} errori (max 3). Ripassa gli errori e riprova.`;
+    }
+
+    if (data.notSaved) {
+      msg.textContent += "\n⚠️ Accedi per salvare i risultati nello storico.";
     }
 
     renderSidebar();

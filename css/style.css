@@ -420,6 +420,75 @@ body {
 .card--review {
   background: #1e293b;
   color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.card--review.is-expanded {
+  grid-column: 1 / -1;
+  flex: 1;
+  cursor: default;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.review-panel {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.review-filters {
+  display: flex;
+  gap: 8px;
+}
+.review-filter-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.review-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.review-filter-btn.is-active {
+  background: #0d7ff2;
+  border-color: #0d7ff2;
+}
+.review-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 40vh;
+  padding-right: 4px;
+}
+.review-q-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.review-q-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #0d7ff2;
+}
+.review-q-item label {
+  flex: 1;
+  cursor: pointer;
 }
 
 .card__icon-box {

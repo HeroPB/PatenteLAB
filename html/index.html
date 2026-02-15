@@ -85,7 +85,7 @@
               </div>
             </div>
 
-            <div class="card card--review is-locked" data-lockable="true">
+            <div class="card card--review is-locked" data-lockable="true" id="cardReview">
               <div class="card__lock-overlay">
                 <span class="material-symbols-outlined card__lock-icon">lock</span>
                 <span class="card__lock-text">Accedi per sbloccare</span>
@@ -95,7 +95,20 @@
               </div>
               <div class="card__text">
                 <h3 class="card__title">Ripasso Errori</h3>
-                <p class="card__desc">Hai 12 errori recenti da rivedere per migliorare il tuo punteggio.</p>
+                <p class="card__desc" id="reviewDesc">Clicca per rivedere le domande sbagliate.</p>
+              </div>
+
+              <!-- Pannello espanso -->
+              <div class="review-panel hidden" id="reviewPanel">
+                <div class="review-filters">
+                  <button class="review-filter-btn is-active" data-select="all">Tutto</button>
+                  <button class="review-filter-btn" data-select="30">Ultime 30</button>
+                  <button class="review-filter-btn" data-select="10">Ultime 10</button>
+                </div>
+                <div class="review-list" id="reviewQuestionsList"></div>
+                <button class="btn btn--primary" id="btnStartReview">
+                  <span class="material-symbols-outlined" style="vertical-align:middle;margin-right:6px">play_arrow</span>Ripassiamo
+                </button>
               </div>
             </div>
 

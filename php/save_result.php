@@ -83,7 +83,7 @@ if (!empty($wrongQuestions)) {
 $conn->close();
 
 jsonResponse([
-    "success" => true,
+    "success" => "success",
     "score" => $score,
     "errors" => $errors,
     "total" => $total,

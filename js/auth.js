@@ -5,7 +5,6 @@ const loginForm = $id("loginForm");
 
 if (loginForm){
   loginForm.addEventListener("submit", async (e) => {
-    /* HTML5 decides validity */
     if (!loginForm.checkValidity()) {
       return;
     }

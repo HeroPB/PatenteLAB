@@ -135,6 +135,112 @@ async function loadStats() {
   } catch {}
 }
 
+let reviewQuestions = [];
+
+function setupReviewCard() {
+  const card = $("#cardReview");
+  if (!card) return;
+
+  card.addEventListener("click", async (e) => {
+    if (card.classList.contains("is-locked")) return;
+    if (e.target.closest(".review-panel")) return;
+
+    const panel = $("#reviewPanel");
+    const stats = $("#statsSection");
+
+    // Collapse
+    if (card.classList.contains("is-expanded")) {
+      card.classList.remove("is-expanded");
+      hide(panel);
+      if (isUserLoggedIn) show(stats);
+      return;
+    }
+
+    // Expand
+    card.classList.add("is-expanded");
+    hide(stats);
+    show(panel);
+
+    const list = $("#reviewQuestionsList");
+    const desc = $("#reviewDesc");
+    list.innerHTML = "<p style='color:#94a3b8'>Caricamento...</p>";
+
+    try {
+      const res = await fetch("../php/get_user_errors.php");
+      const data = await res.json();
+      reviewQuestions = data.questions || [];
+
+      if (reviewQuestions.length === 0) {
+        desc.textContent = "Non hai ancora errori da ripassare.";
+        list.innerHTML = "";
+        return;
+      }
+
+      desc.textContent = `Hai ${reviewQuestions.length} domande da ripassare.`;
+      renderReviewList(reviewQuestions);
+      applyFilter("all");
+    } catch {
+      list.innerHTML = "<p style='color:#ef4444'>Errore nel caricamento.</p>";
+    }
+  });
+
+  const panel = $("#reviewPanel");
+  if (!panel) return;
+
+  panel.addEventListener("click", (e) => {
+    const filterBtn = e.target.closest(".review-filter-btn");
+    if (filterBtn) {
+      $all(".review-filter-btn").forEach(b => b.classList.remove("is-active"));
+      filterBtn.classList.add("is-active");
+      applyFilter(filterBtn.dataset.select);
+      return;
+    }
+
+    if (e.target.id === "btnStartReview" || e.target.closest("#btnStartReview")) {
+      startReview();
+    }
+  });
+}
+
+function renderReviewList(questions) {
+  const list = $("#reviewQuestionsList");
+  list.innerHTML = "";
+  questions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "review-q-item";
+    const id = `rq-${q.id}`;
+    div.innerHTML = `<input type="checkbox" id="${id}" value="${q.id}" checked>
+      <label for="${id}">${i + 1}. ${q.testo}</label>`;
+    list.appendChild(div);
+  });
+}
+
+function applyFilter(mode) {
+  const checkboxes = $all("#reviewQuestionsList input[type='checkbox']");
+  checkboxes.forEach((cb, i) => {
+    if (mode === "all") {
+      cb.checked = true;
+    } else {
+      cb.checked = i < parseInt(mode);
+    }
+  });
+}
+
+function startReview() {
+  const selected = [];
+  $all("#reviewQuestionsList input[type='checkbox']:checked").forEach(cb => {
+    selected.push(parseInt(cb.value));
+  });
+
+  if (selected.length === 0) {
+    alert("Seleziona almeno una domanda.");
+    return;
+  }
+
+  sessionStorage.setItem("ripassoIds", JSON.stringify(selected));
+  location.href = "game.html?mode=ripasso";
+}
+
 async function loadOstiche() {
   const container = $("#ostiche-list");
   if (!container) return;
@@ -345,6 +451,7 @@ async function init() {
   setActiveMenu("dashboard");
   setupSidebarToggle();
   setupLogout();
+  setupReviewCard();
   await loadSessionStatus();
 }
 

@@ -29,8 +29,6 @@ export function removeClass(el, className) {
 }
 
 
-
-
 export function createCustomP(container, msg, color) {
   if (!container) return;
   container.replaceChildren();
@@ -40,7 +38,6 @@ export function createCustomP(container, msg, color) {
   container.appendChild(p);
 }
 
-/* Icone di google font (https://fonts.google.com/icons) */
 export function makeIcon(name, color, sizePx) {
   const s = document.createElement("span");
   s.className = "material-symbols-outlined";

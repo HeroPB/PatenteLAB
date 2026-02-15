@@ -2,28 +2,30 @@
 require_once __DIR__ . "/_utils.php";
 startJsonSession();
 
-
 $username = post("username");
+$email    = post("email");
 $password = post("password");
 
-if ($username === "" || $password === "") {
-  jsonResponse(["status" => "error", "message" => "Username e password obbligatori"], 400);
+if ($username === "" || $email === "" || $password === "") {
+  jsonResponse(["status" => "error", "message" => "Username, email e password obbligatori"], 400);
 }
 
 validateUsername($username, "Username non valido (3-20 car., minuscole, numeri, . e _)");
+validateEmail($email);
 validatePassword($password, "Password deve essere 6-72 caratteri");
 
 $conn = dbConnect();
 
-$stmt = $conn->prepare("SELECT id FROM utenti WHERE username = ?");
-$stmt->bind_param("s", $username);
+// Controlla se username o email sono già in uso
+$stmt = $conn->prepare("SELECT id FROM utenti WHERE username = ? OR email = ?");
+$stmt->bind_param("ss", $username, $email);
 $stmt->execute();
 $stmt->store_result();
 
 if ($stmt->num_rows > 0) {
   $stmt->close();
   $conn->close();
-  jsonResponse(["status" => "error", "message" => "Username già in uso"], 409);
+  jsonResponse(["status" => "error", "message" => "Username o email già in uso"], 409);
 }
 $stmt->close();
 
@@ -31,8 +33,8 @@ $stmt->close();
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
 // inserimento
-$stmt = $conn->prepare("INSERT INTO utenti (username, password) VALUES (?, ?)");
-$stmt->bind_param("ss", $username, $hash);
+$stmt = $conn->prepare("INSERT INTO utenti (username, email, password) VALUES (?, ?, ?)");
+$stmt->bind_param("sss", $username, $email, $hash);
 
 if (!$stmt->execute()) {
   $stmt->close();

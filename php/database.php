@@ -1,5 +1,5 @@
 <?php
 define("DBHOST", "localhost");
-define("DBNAME", "patente_db");
+define("DBNAME", "bacigalupi_689352");
 define("DBUSER", "root");
 define("DBPASS", "");

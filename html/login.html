@@ -18,24 +18,11 @@
         </div>
         <div>
           <h1 class="auth-title">Accedi</h1>
-          <p class="auth-subtitle">Bentornato su PatenteLab</p>
+          <p class="auth-subtitle">Accedi con email e password</p>
         </div>
       </header>
 
       <form id="loginForm" class="auth-form">
-        <div class="field">
-          <label for="login-username">Username</label>
-          <div class="input-wrap">
-            <span class="material-symbols-outlined input-icon">person</span>
-            <input id="login-username" name="username" required autocomplete="username"
-              placeholder="mario.rossi"
-              minlength="3"
-              pattern="^[a-z][a-z0-9._]{2,19}$"
-              title="3-20 caratteri: lettere minuscole, numeri, . e _ (inizia con lettera)"
-              class="with-icon">
-          </div>
-        </div>
-
         <div class="field">
           <label for="login-email">Email</label>
           <div class="input-wrap">
@@ -52,14 +39,11 @@
             <span class="material-symbols-outlined input-icon">lock</span>
             <input id="login-password" type="password" name="password" required autocomplete="current-password"
               placeholder="La tua password"
-              minlength="6"
               class="with-icon">
           </div>
-          <!--<p class="field-error hidden" id="loginPassErr"></p>-->
         </div>
 
         <button class="btn btn--primary" type="submit">Entra</button>
-        <!--<p class="msg" id="loginMsg"></p>-->
       </form>
 
       <footer class="auth-footer">

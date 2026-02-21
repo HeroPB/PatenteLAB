@@ -1,0 +1,142 @@
+.guida-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+}
+
+.guida-blu {
+  background: linear-gradient(135deg, #0d7ff2, #2563eb);
+  color: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.guida-badge {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.guida-blu h1 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 4.5vw, 42px);
+  line-height: 1.12;
+}
+
+.guida-blu p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 74ch;
+}
+
+.guida-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guida-actions .btn {
+  width: auto;
+  min-width: 160px;
+}
+
+.guida-actions .btn--outline {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+.guida-actions .btn--outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.guida-grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.guida-card {
+  background: #fff;
+  border: 1px solid #dbe5f1;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.guida-card h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.guida-card p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.guida-card p + p {
+  margin-top: 7px;
+}
+
+.guida-footer {
+  margin-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #475569;
+  font-size: 14px;
+}
+
+.guida-footer p {
+  margin: 0;
+}
+
+.guida-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.guida-links a {
+  color: #0d7ff2;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.guida-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .guida-page {
+    padding: 16px 14px 30px;
+  }
+
+  .guida-blu {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .guida-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guida-actions .btn {
+    width: 100%;
+  }
+}

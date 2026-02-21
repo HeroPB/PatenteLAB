@@ -2,22 +2,20 @@
 require_once __DIR__ . "/_utils.php";
 startJsonSession();
 
-$username = post("username");
 $email    = post("email");
 $password = post("password");
 
-if ($username === "" || $email === "" || $password === "") {
-  jsonError("Username, email e password obbligatori", 400);
+if ($email === "" || $password === "") {
+  jsonError("Email e password obbligatorie");
 }
 
-validateUsername($username);
 validateEmail($email);
 validatePassword($password);
 
 $conn = dbConnect();
 
-$stmt = $conn->prepare("SELECT id, username, email, password FROM utenti WHERE username = ? AND email = ?");
-$stmt->bind_param("ss", $username, $email);
+$stmt = $conn->prepare("SELECT id, username, email, password FROM utenti WHERE email = ?");
+$stmt->bind_param("s", $email);
 $stmt->execute();
 
 $res = $stmt->get_result();
@@ -27,7 +25,7 @@ $stmt->close();
 $conn->close();
 
 if (!$row || !password_verify($password, $row["password"])) {
-  jsonError("Credenziali non valide", 401);
+  jsonError("Credenziali non valide");
 }
 
 session_regenerate_id(true);

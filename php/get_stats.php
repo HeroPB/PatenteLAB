@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/_utils.php";
 startJsonSession();
-requireLogin("Non loggato");
+requireLogin();
 
 $userId = currentUserId();
 $conn = dbConnect();

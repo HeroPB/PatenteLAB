@@ -1,10 +1,14 @@
 import { $id, show, hide, addClass, removeClass } from "./utils.js";
 
 const params = new URLSearchParams(location.search);
-const isRipasso = params.get("mode") === "ripasso";
+const mode = params.get("mode");
+const isRipasso = mode === "ripasso";
+const isChallenge = mode === "sfida";
+const challengeId = parseInt(params.get("challenge_id") || "0", 10);
+let challengeOpponent = "";
 
 let TOTAL_QUESTIONS = 30;
-const TIME_LIMIT_MINUTES = 1;
+const TIME_LIMIT_MINUTES = 20;
 
 let questions = [];
 let currentQuestionIndex = 0;
@@ -29,6 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initGame() {
   try {
+    if (isChallenge) {
+      const topTitle = document.querySelector(".game-topbar__title");
+      if (topTitle) topTitle.textContent = "Sfida 1v1";
+    }
     await fetchQuestions();
     renderSidebar();
     startTimer();
@@ -42,7 +50,18 @@ async function initGame() {
 async function fetchQuestions() {
   elQuestionText.textContent = "Caricamento...";
 
-  if (isRipasso) {
+  if (isChallenge) {
+    if (!Number.isInteger(challengeId) || challengeId <= 0) {
+      throw new Error("Sfida non valida");
+    }
+
+    const res = await fetch(`../php/get_challenge_questions.php?id=${challengeId}`);
+    if (!res.ok) throw new Error("API Error");
+    const data = await res.json();
+    if (data.status !== "success") throw new Error(data.message || "API Error");
+    questions = data.data && Array.isArray(data.data.questions) ? data.data.questions : [];
+    challengeOpponent = data.data && data.data.opponent ? data.data.opponent : "";
+  } else if (isRipasso) {
     const ids = JSON.parse(sessionStorage.getItem("ripassoIds") || "[]");
     if (ids.length === 0) throw new Error("Nessuna domanda selezionata");
 
@@ -83,23 +102,23 @@ async function fetchQuestions() {
 
 function renderSidebar() {
   elQuestionsGrid.innerHTML = "";
-  questions.forEach((_, index) => {
+  questions.forEach((question, i) => {
     const btn = document.createElement("button");
     btn.className = "q-btn";
-    btn.textContent = index + 1;
+    btn.id = "q-btn"+i;
+    btn.textContent = i + 1;
     btn.onclick = () => {
       isTransitioning = false;
-      loadQuestion(index);
+      loadQuestion(i);
     };
-    
-
-    if (index === currentQuestionIndex) addClass(btn, "is-active");
-    if (userAnswers[index] !== null) addClass(btn, "is-answered");
-    if (flags[index]) addClass(btn, "is-flagged");
 
     if (isGameOver) {
-      const isCorrect = userAnswers[index] === questions[index].correct;
+      const isCorrect = userAnswers[i] === questions[i].correct;
       addClass(btn, isCorrect ? "is-correct" : "is-wrong");
+    } else {
+      if (i === currentQuestionIndex) addClass(btn, "is-active");
+      if (userAnswers[i] !== null) addClass(btn, "is-answered");
+      if (flags[i]) addClass(btn, "is-flagged");
     }
 
     elQuestionsGrid.appendChild(btn);
@@ -218,7 +237,7 @@ function startTimer() {
 
     if (timeRemaining <= 0) {
       clearInterval(timerInterval);
-      alert("Tempo scaduto! L'esame verrà terminato.");
+      alert(isChallenge ? "Tempo scaduto! La sfida verrà terminata." : "Tempo scaduto! L'esame verrà terminato.");
       finishGame();
     }
   }, 1000);
@@ -241,7 +260,7 @@ function setupEvents() {
   elBtnFlag.onclick = toggleFlag;
   
   $id("btnSubmit").onclick = () => {
-    if(confirm("Confermi di voler terminare l'esame?")) {
+    if (confirm(isChallenge ? "Confermi di voler terminare la sfida?" : "Confermi di voler terminare l'esame?")) {
       finishGame();
     }
   };
@@ -249,14 +268,14 @@ function setupEvents() {
   $id("btnExit").onclick = () => {
     if (isGameOver) {
       window.location.href = "index.html";
-    } else if (confirm("Vuoi davvero uscire dalla simulazione? I progressi non saranno salvati.")) {
+    } else if (confirm("Vuoi davvero uscire dalla simulazione?")) {
       window.location.href = "index.html";
     }
   };
   
   $id("btnHome").onclick = () => window.location.href = "index.html";
   $id("btnReview").onclick = () => {
-    $id("resultModal").classList.add("hidden");
+    addClass($id("resultModal"), "hidden");
   };
 
   document.addEventListener("keydown", (e) => {
@@ -277,50 +296,65 @@ async function finishGame() {
   $id("btnFlag").classList.add("hidden");
 
   const payload = {
-    answers: questions.map((q, index) => ({
+    answers: questions.map((q, i) => ({
       id: q.id,
-      answer: userAnswers[index]
+      answer: userAnswers[i]
     }))
   };
 
   try {
     let data;
 
-    const canSave = !isRipasso;
-    let saved = false;
-
-    if (canSave) {
-      const sessionRes = await fetch("../php/session_status.php");
-      const session = await sessionRes.json();
-
-      if (session.status === "success" && session.data && session.data.logged) {
-        const res = await fetch("../php/save_result.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        data = await res.json();
-        if (data.status !== "success") {
-          throw new Error(data.message || "API Error");
-        }
-        saved = true;
-      }
-    }
-
-    if (!saved) {
-      let localErrors = 0;
-      questions.forEach((q, i) => {
-        if (userAnswers[i] !== q.correct) localErrors++;
+    if (isChallenge) {
+      const res = await fetch("../php/submit_challenge_result.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge_id: challengeId,
+          answers: payload.answers
+        })
       });
-      data = {
-        status: "success",
-        data: {
-          errors: localErrors,
-          total: questions.length,
-          esito: localErrors <= 3 ? 'superato' : 'respinto',
-          notSaved: true
+      data = await res.json();
+      if (!res.ok || data.status !== "success") {
+        throw new Error(data.message || "API Error");
+      }
+    } else {
+      const canSave = !isRipasso;
+      let saved = false;
+
+      if (canSave) {
+        const sessionRes = await fetch("../php/session_status.php");
+        const session = await sessionRes.json();
+
+        if (session.status === "success" && session.data && session.data.logged) {
+          const res = await fetch("../php/save_result.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          data = await res.json();
+          if (data.status !== "success") {
+            throw new Error(data.message || "API Error");
+          }
+          saved = true;
         }
-      };
+      }
+
+      if (!saved) {
+        let localErrors = 0;
+        questions.forEach((q, i) => {
+          if (userAnswers[i] !== q.correct) localErrors++;
+        });
+        data = {
+          status: "success",
+          data: {
+            errors: localErrors,
+            total: questions.length,
+            esito: localErrors <= 3 ? 'superato' : 'respinto',
+            notSaved: true
+          }
+        };
+      }
     }
 
     const resultData = data.data || {};
@@ -335,7 +369,27 @@ async function finishGame() {
     removeClass(modal, "hidden");
     scoreVal.textContent = errCount;
 
-    if (resultData.esito === 'superato') {
+    if (isChallenge) {
+      title.textContent = "Sfida Completata";
+      const challengeResult = resultData.challenge_result || "in_attesa";
+      const myScore = resultData.my_score === null || resultData.my_score === undefined ? "-" : resultData.my_score;
+      const oppScore = resultData.opponent_score === null || resultData.opponent_score === undefined ? "-" : resultData.opponent_score;
+      const opponentName = challengeOpponent || resultData.opponent || "avversario";
+
+      if (challengeResult === "vinta") {
+        circle.className = "score-circle is-success";
+        msg.textContent = `Hai vinto contro ${opponentName}. Punteggio ${myScore}-${oppScore}.`;
+      } else if (challengeResult === "persa") {
+        circle.className = "score-circle is-fail";
+        msg.textContent = `Hai perso contro ${opponentName}. Punteggio ${myScore}-${oppScore}.`;
+      } else if (challengeResult === "pareggio") {
+        circle.className = "score-circle";
+        msg.textContent = `Pareggio con ${opponentName}. Punteggio ${myScore}-${oppScore}.`;
+      } else {
+        circle.className = "score-circle";
+        msg.textContent = `Risultato inviato. In attesa che ${opponentName} completi la sfida.`;
+      }
+    } else if (resultData.esito === 'superato') {
       title.textContent = "Esame Superato!";
       circle.className = "score-circle is-success";
       msg.textContent = `Hai fatto solo ${errCount} errori. Ottimo lavoro!`;
@@ -345,8 +399,8 @@ async function finishGame() {
       msg.textContent = `Hai commesso ${errCount} errori (max 3). Ripassa gli errori e riprova.`;
     }
 
-    if (resultData.notSaved) {
-      msg.textContent += "\n⚠️ Accedi per salvare i risultati nello storico.";
+    if (!isChallenge && resultData.notSaved) {
+      msg.textContent += "\nAccedi per salvare i risultati nello storico.";
     }
 
     renderSidebar();

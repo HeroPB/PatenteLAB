@@ -4,14 +4,14 @@ startJsonSession();
 requireLogin();
 
 $data = readJsonBody();
-$ids = isset($data["ids"]) ? $data["ids"] : [];
+$ids = $data["ids"] ?? [];
 
 if (!is_array($ids) || count($ids) === 0) {
-    jsonError("Nessuna domanda selezionata", 400);
+    jsonError("Nessuna domanda selezionata");
 }
 
 $ids = array_map("intval", $ids);
-$placeholders = implode(",", array_fill(0, count($ids), "?"));
+$placeholders = sqlInPlaceholders($ids);
 $types = str_repeat("i", count($ids));
 
 $conn = dbConnect();

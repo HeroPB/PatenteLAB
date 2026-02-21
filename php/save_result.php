@@ -7,7 +7,7 @@ $userId = currentUserId();
 $input = readJsonBody();
 
 if (!isset($input["answers"]) || !is_array($input["answers"])) {
-    jsonError("Dati mancanti", 400);
+    jsonError("Dati mancanti");
 }
 
 $userAnswers = $input['answers'];
@@ -24,14 +24,18 @@ if (empty($questionIds)) {
     jsonSuccess(["score" => 0, "errors" => 0, "total" => 0, "esito" => "respinto"]);
 }
 
-$idsStr = implode(',', $questionIds);
-$sql = "SELECT id, testo, immagine, risposta FROM quesiti WHERE id IN ($idsStr)";
-$result = $conn->query($sql);
+$placeholders = sqlInPlaceholders($questionIds);
+$types = str_repeat("i", count($questionIds));
+$stmtQuestions = $conn->prepare("SELECT id, testo, immagine, risposta FROM quesiti WHERE id IN ($placeholders)");
+$stmtQuestions->bind_param($types, ...$questionIds);
+$stmtQuestions->execute();
+$result = $stmtQuestions->get_result();
 
 $dbData = [];
 while ($row = $result->fetch_assoc()) {
     $dbData[$row['id']] = $row;
 }
+$stmtQuestions->close();
 
 $score = 0;
 $errors = 0;

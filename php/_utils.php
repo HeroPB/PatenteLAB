@@ -1,15 +1,14 @@
 <?php
 require_once __DIR__ . "/database.php";
 
-function jsonResponse($data, int $httpCode = 200): void
+function jsonResponse($data): void
 {
-  http_response_code($httpCode);
   header("Content-Type: application/json; charset=utf-8");
   echo json_encode($data);
   exit;
 }
 
-function jsonSuccess($data = null, $message = null, int $httpCode = 200): void
+function jsonSuccess($data = null, $message = null): void
 {
   $payload = ["status" => "success"];
   if ($message !== null && $message !== "") {
@@ -18,27 +17,22 @@ function jsonSuccess($data = null, $message = null, int $httpCode = 200): void
   if ($data !== null) {
     $payload["data"] = $data;
   }
-  jsonResponse($payload, $httpCode);
+  jsonResponse($payload);
 }
 
-function jsonError($message, int $httpCode = 400, $data = null): void
+function jsonError($message, $data = null): void
 {
   $payload = ["status" => "error", "message" => $message];
   if ($data !== null) {
     $payload["data"] = $data;
   }
-  jsonResponse($payload, $httpCode);
-}
-
-function startJson(): void
-{
-  header("Content-Type: application/json; charset=utf-8");
+  jsonResponse($payload);
 }
 
 function startJsonSession(): void
 {
-  startJson();
-  if (session_status() !== PHP_SESSION_ACTIVE) {
+    header("Content-Type: application/json; charset=utf-8");
+    if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
   }
 }
@@ -47,7 +41,7 @@ function dbConnect(): mysqli
 {
   $conn = new mysqli(DBHOST, DBUSER, DBPASS, DBNAME);
   if ($conn->connect_error) {
-    jsonError("DB connection failed", 500);
+    jsonError("DB connection failed");
   }
   $conn->set_charset("utf8mb4");
   return $conn;
@@ -68,7 +62,7 @@ function readJsonBody(): array
   $raw = file_get_contents("php://input");
   $data = json_decode($raw, true);
   if (!is_array($data)) {
-    jsonError("JSON non valido", 400);
+    jsonError("JSON non valido");
   }
 
   array_walk_recursive($data, function (&$item) {
@@ -83,7 +77,7 @@ function readJsonBody(): array
 function requireLogin(string $msg = "Utente non loggato"): void
 {
   if (!isset($_SESSION["user"]) || !isset($_SESSION["user"]["id"])) {
-    jsonError($msg, 401);
+    jsonError($msg);
   }
 }
 
@@ -95,20 +89,25 @@ function currentUserId(): int
 function validateUsername(string $username, string $msg = "Username non valido"): void
 {
   if (!preg_match('/^[a-z][a-z0-9._]{2,19}$/', $username)) {
-    jsonError($msg, 400);
+    jsonError($msg);
   }
 }
 
 function validateEmail(string $email, string $msg = "Email non valida"): void
 {
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    jsonError($msg, 400);
+    jsonError($msg);
   }
 }
 
 function validatePassword(string $password, string $msg = "Password non valida"): void
 {
   if (strlen($password) < 6 || strlen($password) > 72) {
-    jsonError($msg, 400);
+    jsonError($msg);
   }
+}
+
+function sqlInPlaceholders(array $values): string
+{
+  return implode(",", array_fill(0, count($values), "?"));
 }

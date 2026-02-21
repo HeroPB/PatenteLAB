@@ -47,7 +47,7 @@ export function makeIcon(name, color, sizePx) {
   return s;
 }
 
-export function makeImgThumb(src) {
+export function makeIMG(src) {
   const img = document.createElement("img");
   img.src = "../immagini/quiz/" + src;
   img.className = "storico-thumb";
